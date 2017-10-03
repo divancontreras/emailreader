@@ -125,7 +125,7 @@ def getData(message,ws,row):
 	Caja = body.split()[1]
 	Sello = body.split()[4]
 	TipoCaja = message.Subject.split()[4]
-	fecha = str(message.SentOn).split()[0]
+	fecha = (message.SentOn).split()[0]
 	hora = str(message.SentOn).split()[1]
 	if('Chino' in message.body):
 		Destino = body.split()[10] + " " + body.split()[11]
