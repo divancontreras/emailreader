@@ -25,11 +25,12 @@ def InitEnv():
 	print("Buscando cajas nuevas..." + "\n")
 	book = openpyxl.load_workbook('\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activos\\EXPORT P2\\2017\HORARIOS EXP P2.xlsx')
 	outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-	ws = book.worksheets[6]
+	ws = book.worksheets[5]
 	inbox = outlook.GetDefaultFolder(6) # "6" refers to the index of a folder - in this case,
 	                                    # the inbox. You can change that number to reference                              # any other folder
 	messages = inbox.Items
 	cajas_folder = inbox.Folders.Item("Sistema de Cajas")
+	print(book.worksheets[5])
 	IterInbox(ws,messages,cajas_folder,book)
 
 
@@ -40,9 +41,9 @@ def getRow(ws):
 
 
 def CheckRepeat(ws,row,fecha,hora,limit = 30):
-	for x in range(row-1, limit,-1):
-		localdate = ws.cell(row=x, column=14).value
-		localhour = ws.cell(row=x, column=15).value
+	for xrow in range(row-1, limit,-1):
+		localdate = ws.cell(row=xrow, column=14).value
+		localhour = ws.cell(row=xrow, column=15).value
 		if(fecha == localdate and localhour == hora[:8]):
 			return True
 	return False
@@ -82,7 +83,6 @@ def InserData(Caja,Sello,TipoCaja,Destino,Salida,ws,fecha,hora,row):
 
 	if(CheckStatus):
 		return False
-
 	else:
 		today = datetime.date.today()
 		ws.cell(row=row, column=1).value = datetime.datetime.now().isocalendar()[1]
@@ -93,7 +93,10 @@ def InserData(Caja,Sello,TipoCaja,Destino,Salida,ws,fecha,hora,row):
 		if((ws.cell(row=row-1, column = 1).value) != (datetime.datetime.now().isocalendar()[1])):
 			ws.cell(row=row, column=4).value = 1
 		else:
-			ws.cell(row=row, column=4).value = ws.cell(row=row-1, column=4).value + 1
+			for xrow in range(row-1,0,-1):
+				if ws.cell(row=xrow, column=4).value != None:
+					ws.cell(row=row, column=4).value = ws.cell(row=xrow, column=4).value + 1
+					break
 
 		##	Fill the excell cells with the info from the email.
 		##	Each cell will be filled invidivually with the especific value
@@ -146,10 +149,26 @@ def getData(message,ws,row):
 		print("____________________________" + "\n")
 		return False
 
-def autoUpdateBox(delay):
+def autoUpdateBox():
+	Cont=0
 	while True:
+		book = openpyxl.load_workbook('\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activos\\EXPORT P2\\2017\HORARIOS EXP P2.xlsx')
+		Cont+=1
 		InitEnv()
-		time.sleep(delay)
+		if(Cont==30):
+				status = True
+				while status:
+					try:
+						book.save('\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activos\\EXPORT P2\\2017\HORARIOS EXP P2 - BACKUP.xlsx')
+						status = False
+					except:
+						print("ERROR, ARCHIVO DE BACKUP ABIERTO!, CIERRE PARA GUARDAR, VOLVIENDO A INTENTAR EN 30 SEGUNDOS.")
+						status = True
+						time.sleep(30)
+				print("Documento Bakcup actualizado"+ "\n")
+				Cont=0
+		print("Actualizacion cada 5 minutos..." + "\n")
+		time.sleep(300)
 
 
 def main():
@@ -167,8 +186,8 @@ def main():
 			InitEnv()
 
 		if ans == '2':
-			delay = input("Actualizacion cada x Segundos:")
-			autoUpdateBox(delay)
+			print("Actualizacion cada 5 minutos..."+ "\n")
+			autoUpdateBox()
 
 		elif ans == '5':
 			print("Adios")
