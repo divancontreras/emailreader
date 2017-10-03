@@ -1,0 +1,11 @@
+import sys
+import cx_Freeze
+from cx_Freeze import setup, Executable
+
+setup(
+    name = "DCEmailReader",
+    options = options,
+    version = "1.0",
+    description = 'Programa para sacar información de los correos del sistema de cajas y ponerlos en el excel de horarios.',
+    executables = [Executable("new.py", base="Win32GUI")]
+)
