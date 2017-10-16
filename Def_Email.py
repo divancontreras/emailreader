@@ -38,12 +38,12 @@ def InitEnv(action):
         6)  # "6" refers to the index of a folder - in this case,
     # the inbox. You can change that number to reference                              # any other folder
     messages = inbox.Items
-    cajas_folder = inbox.Folders.Item("Sistema de Cajas")
     print(book.worksheets[5])
     if action == 1:
+        cajas_folder = inbox.Folders.Item("Sistema de Cajas")        
         IterInbox(ws, messages, cajas_folder, book)
     # elif action == 2:
-        
+        Iterbox(ws,messages,book)
     # elif action == 3:
 
 
@@ -74,7 +74,7 @@ def searchDaw(ws, messages, book)
     email = "AdminCajasMty"
     subject = 'P2- Reporte de Caja'
     subjectAd = 'NACIONAL'
-    
+
 def IterInbox(ws, messages, cajas_folder, book):
     global row
     email = "AdminCajasMty"
@@ -94,6 +94,8 @@ def IterInbox(ws, messages, cajas_folder, book):
     else:
         print("No hubo cajas por guardar!")
 
+def searchDaw(ws,messages,book):
+    
 
 def InserData(Caja, Sello, TipoCaja, Destino, Salida, ws, fecha, hora, row):
     ##	Fill the excell cells with the info from the email.
@@ -228,5 +230,8 @@ def main():
             print("Adios")
             exit()
 
+        if ans == '9':
+            print("Iniciando configuracion..." + "\n")
+            autoUpdateBox()
 
 main()
