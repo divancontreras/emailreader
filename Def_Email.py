@@ -5,6 +5,7 @@ import datetime
 import time
 from openpyxl.styles import Alignment
 from datetime import timedelta
+from ClassEmailBox import *
 
 excelfile = '\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activos\\EXPORT P2\\2017\HORARIOS EXP P2.xlsx'
 excelbackup = '\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activos\\EXPORT P2\\2017\HORARIOS EXP P2 - BACKUP.xlsx'
@@ -47,6 +48,7 @@ def getRow(ws):
 
 
 def CheckRepeat(ws, row, fecha, hora, limit=30):
+    # This function will check if the box already exists.
     for xrow in range(row - 1, limit, -1):
         localdate = ws.cell(row=xrow, column=14).value
         localhour = ws.cell(row=xrow, column=15).value
@@ -56,6 +58,7 @@ def CheckRepeat(ws, row, fecha, hora, limit=30):
 
 
 def FormatCells(ws, row):
+    # This functions is only used to keep the same format in the document.
     for x in range(1, 21):
         cell = ws.cell(row=row, column=x)
         cell.font = Font(name="Calibri", size=9)
@@ -83,7 +86,7 @@ def IterInbox(ws, messages, cajas_folder, book):
 
 
 def InserData(Caja, Sello, TipoCaja, Destino, Salida, ws, fecha, hora, row):
-    ##    Fill the excell cells with the info from the email.
+    ##    Fill the excel cells with the info from the email.
     ##    Each cell will be filled invidivually with the especific value
     if CheckRepeat(ws, row, fecha, hora):
         return False
@@ -132,27 +135,29 @@ def InserData(Caja, Sello, TipoCaja, Destino, Salida, ws, fecha, hora, row):
 
 
 def getData(message, ws, row):
-    #Read the Email and get the key data from it.
-    #This are the variables that will have the data of the email
+    #Read the email and parse the key data
+    #This variables are keeping the email data
     body = str(message.body).split()
     Caja = body[1]
     Sello = body[4]
     TipoCaja = message.Subject.split()[4]
     fecha = str(message.SentOn).split()[0]
     hora = str(message.SentOn).split()[1]
+    # Some exceptions
     if ('Chino' in message.body):
         Destino = body[10] + " " + body[11]
         Salida = body[13]
     else:
         Destino = body[10]
         Salida = body[12]
-
+    ##InserData() return a bool that states if the Data was successfully inserted
     if (InserData(Caja, Sello, TipoCaja, Destino, Salida, ws, fecha, hora,row)):
         print("_______BOX SAVED_______" + "\n")
         print(Caja + " " + Sello + " " + Destino + " " + Salida + " " +
               TipoCaja)
         print("___________________________" + "\n")
         return True
+    ##If tha data was repeated the following will be displayed
     else:
         print("_______BOX REPEATED________" + "\n")
         print(Caja + " " + Sello + " " + Destino + " " + Salida + " " + TipoCaja)
@@ -184,36 +189,36 @@ def autoUpdateBox():
         time.sleep(300)
 
 
-def InitConf(**kwargs):
+def InitConf(EmailData):
     book = openpyxl.load_workbook(excelfile)
     outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
     ws = book.worksheets[5]
     inbox = outlook.GetDefaultFolder(6)  
     messages = inbox.Items
     print(book.worksheets[5])
-    IterConf(ws, messages, book, **kwargs)
+    IterConf(ws, messages, book, EmailData)
 
 
-def IterConf(ws, messages, book, **kwargs):
+def IterConf(ws, messages, book, EmailData):
     row = getRow(ws)
     for message in messages:
-        if kwargs['subject'] in message.Subject and kwargs['email'] in message.SenderEmailAddress:
-            if kwargs['bodykey'] in str(message.body).lower():
+        if EmailData.getSubject() in message.Subject and EmailData.getEmail() in message.SenderEmailAddress:
+            if EmailData.getBody() in str(message.body).lower():
                 fecha = str(message.SentOn).split('-')
-                startdate = fecha[1] + "/" + fecha[2] + "/" + fecha[0]
-                caja = str(message.Subject).split()[1]
-                enddate = str(deltaDate(startdate, -4))
-                row = getDateRow(row, ws, startdate)
-                findBoxbyDate(ws, message, startdate, caja, enddate, row)
+                EmailData.setStart(fecha[1] + "/" + fecha[2] + "/" + fecha[0])
+                EmailData.setCaja(str(message.Subject).split()[1])
+                EmailData.setEnd(str(deltaDate(startdate, -4)))
+                EmailData.setRow(getDateRow(row, ws, EmailData.getStart()))
+                findBoxbyDate(ws, message, EmailData)
     book.save(excelfile)
 
-def findBoxbyDate(ws, message, var_array, **kwargs):
-    x = var_array[3]
-    while ws.cell(row=x, column=3).value != var_array[2] :
-        if kwargs['caja'] == ws.cell(row=x, column=8).value:
-            ws.cell(row=x, column=20).value = var_array[0]
+def findBoxbyDate(ws, message, EmailData):
+    x = EmailData.getRow()
+    while ws.cell(row=x, column=3).value != EmailData.getEnd() :
+        if EmailData.getCaja() == ws.cell(row=x, column=8).value:
+            ws.cell(row=x, column=20).value = EmailData.getStart()
             ws.cell(
-                row=x, column=21).value = str(var_array[3].SentOn).split()[1][:8]
+                row=x, column=21).value = str(message.SentOn).split()[1][:8]
             return True
         x -= 1
 
@@ -229,9 +234,8 @@ def deltaDate(strdate, days):
     return str(timeclass + timedelta(days=days))
 
 
-def test(details):
-    print(details['arg3'])
-
+def test(box):
+    print(box.getEmail())
 
 def main():
     while True:
@@ -254,28 +258,24 @@ def main():
 
         if ans == '3':
             print("Buscando confirmaciones Daw Vital..." + "\n")
-            InitConf(email = "dawvital.com",
-            subject = 'P2',
-            bodykey = 'listo')
+            EmailData = EmailBox("dawvital.com","P2","listo")
+            InitConf(EmailData)
 
         elif ans == '4':
             print("Buscando confirmaciones Expeditors..." + "\n")            
-            InitConf(email = "expeditors.com",
-                    subject = 'P2',
-                    bodykey = 'entry')
-
+            EmailData = EmailBox("expeditors.com","P2","entry")
+            InitConf(EmailData)
 
         elif ans == '5':
-            InitConf(email = "schneider-electric.com",
-                    subject = "P2",
-                    bodykey = "adjunto")
+            print("Buscando confirmaciones Schneider..." + "\n")
+            EmailData = EmailBox("schneider-electric.com","P2","adjunto")
+            print(EmailData.getEmail())
+            InitConf(EmailData)
 
         elif ans == '9':
             print("Adios")
             exit()
         elif ans == '6':
-            arg3 = 4
-            arg2 = 6
-            details = [arg3,arg2]
-            test(details)
+            EmailData = EmailBox("schneider-electric.com","P2","adjunto")
+            test(EmailData)
 main()
