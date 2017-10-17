@@ -12,16 +12,15 @@ excelbackup = '\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activo
 
 
 def SaveDoc(book):
-    global excelfile
     status = True
     while status:
         try:
             book.save(excelfile)
             status = False
         except:
-            print("ERROR, OPEN EXCEL FILE, TRYING AGAIN IN 30 SECS!")
+            print("ERROR, EXCEL FILE OPEN, TRYING AGAIN IN 10 SECS!")
             status = True
-            time.sleep(30)
+            time.sleep(10)
     print("DOCUMENTO GUARDADO")
 
 
@@ -74,11 +73,22 @@ def IterInbox(ws, messages, cajas_folder, book):
     row = getRow(ws)
     rowAUx = row
     for message in messages:
-        if subject in message.Subject and email in message.SenderEmailAddress and not (
-                subjectAd in message.Subject):
-            if getData(message, ws, row):
-                row += 1
-            message.Move(cajas_folder)
+        print(message.SenderEmailAddress)
+        if message.Class == 43 :
+            if message.SenderEmailType == "EX" :
+                if subject in message.Subject and email in message.Sender.GetExchangeUser().PrimarySmtpAddress and not (
+                        subjectAd in message.Subject):
+                    print(message.Sender.GetExchangeUser().PrimarySmtpAddress)
+                    if getData(message, ws, row):
+                        row += 1
+                    #message.Move(cajas_folder)
+            else:
+                if subject in message.Subject and email in message.SenderEmailAddress and not (
+                        subjectAd in message.Subject):
+                    print(message.SenderEmailAddress)
+                    if getData(message, ws, row):
+                        row += 1
+                    #message.Move(cajas_folder)
     if rowAUx != row:
         SaveDoc(book)
     else:
@@ -202,30 +212,51 @@ def InitConf(EmailData):
 def IterConf(ws, messages, book, EmailData):
     row = getRow(ws)
     for message in messages:
-        if EmailData.getSubject() in message.Subject and EmailData.getEmail() in message.SenderEmailAddress:
-            if EmailData.getBody() in str(message.body).lower():
-                fecha = str(message.SentOn).split('-')
-                EmailData.setStart(fecha[1] + "/" + fecha[2] + "/" + fecha[0])
-                EmailData.setCaja(str(message.Subject).split()[1])
-                EmailData.setEnd(str(deltaDate(startdate, -4)))
-                EmailData.setRow(getDateRow(row, ws, EmailData.getStart()))
-                findBoxbyDate(ws, message, EmailData)
-    book.save(excelfile)
+        if message.Class == 43 :
+            if message.SenderEmailType == "EX" :
+                if EmailData.getSubject() in message.Subject and EmailData.getEmail() in message.Sender.GetExchangeUser().PrimarySmtpAddress:
+                    print(message.Sender.GetExchangeUser().PrimarySmtpAddress)
+                    if EmailData.getBody() in str(message.body).lower():
+                        fecha = str(message.SentOn).split()[0].split('-')
+                        EmailData.setStart(fecha[1] + "/" + fecha[2] + "/" + fecha[0])
+                        EmailData.setCaja(str(message.Subject).split()[1])
+                        EmailData.setEnd(str(deltaDate(EmailData.getStart(), -4)))
+                        EmailData.setRow(getDateRow(row, ws, EmailData.getStart()))
+                        findBoxbyDate(ws, message, EmailData)
+            else:
+                if EmailData.getSubject() in message.Subject and EmailData.getEmail() in message.SenderEmailAddress:
+                    print(message.SenderEmailAddress)
+                    if EmailData.getBody() in str(message.body).lower():
+                        fecha = str(message.SentOn).split()[0].split('-')
+                        EmailData.setStart(fecha[1] + "/" + fecha[2] + "/" + fecha[0])
+                        EmailData.setCaja(str(message.Subject).split()[1])
+                        EmailData.setEnd(str(deltaDate(EmailData.getStart(), -4)))
+                        EmailData.setRow(getDateRow(row, ws, EmailData.getStart()))
+                        findBoxbyDate(ws, message, EmailData)
+    SaveDoc(excelfile)
 
 def findBoxbyDate(ws, message, EmailData):
-    x = EmailData.getRow()
-    while ws.cell(row=x, column=3).value != EmailData.getEnd() :
-        if EmailData.getCaja() == ws.cell(row=x, column=8).value:
-            ws.cell(row=x, column=20).value = EmailData.getStart()
-            ws.cell(
-                row=x, column=21).value = str(message.SentOn).split()[1][:8]
-            return True
-        x -= 1
+    row = EmailData.getRow()
+    print("Row:" +str(row))
+    if row != None:
+        while ws.cell(row=row, column=3).value != EmailData.getEnd() and row >1:
+            if EmailData.getCaja() == ws.cell(row=row, column=8).value:
+                ws.cell(row=row, column=20).value = EmailData.getStart()
+                ws.cell(
+                    row=row, column=21).value = str(message.SentOn).split()[1][:8]
+                return True
+            row -= 1
 
 
 def getDateRow(row, ws, formdate):
-    for x in range(row, 0, -1):
-        if ws.cell(row=x, column=3).value == formdate:
+    for x in range(row, 1, -1):
+        if('-' in str(ws.cell(row=x, column=3).value)):
+            fecha = str(ws.cell(row=x, column=3).value).split()[0].split('-')
+            fecha = fecha[1] + "/" + fecha[2] + "/" + fecha[0]
+
+        else:
+            fecha = str(ws.cell(row=x, column=3).value)
+        if fecha == formdate:
             return x
 
 
@@ -241,8 +272,8 @@ def main():
     while True:
         print("""
         1. Actualizar Cajas Excel
-        2. Actualizado automatico
-        3. Actualizar Confirmacion Daw Vital
+        2. Actualizado automatico 
+        3. Actualizar Confirmacion Daw Vidal
         4. Actualizar Confirmacion Expeditors
         5. Actualizar Nuestro Envio de Documentos 
         6. Exit/Quit
@@ -257,8 +288,8 @@ def main():
             autoUpdateBox()
 
         if ans == '3':
-            print("Buscando confirmaciones Daw Vital..." + "\n")
-            EmailData = EmailBox("dawvital.com","P2","listo")
+            print("Buscando confirmaciones Daw Vidal..." + "\n")
+            EmailData = EmailBox("dawvidal.com","SCHNEIDER ELECTRIC P2","listo")
             InitConf(EmailData)
 
         elif ans == '4':

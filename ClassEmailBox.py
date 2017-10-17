@@ -39,7 +39,7 @@ class EmailBox(object):
 
     def getRow(self):
         """Regresa la Row donde se encontró la fecha."""
-        return self.email
+        return self.row
 
     def setEnd(self, enddate):
         """Este atributo sirve para limitar el día de busqueda."""        
