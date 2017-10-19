@@ -7,7 +7,8 @@ from openpyxl.styles import Alignment
 from datetime import timedelta
 from ClassEmailBox import *
 
-excelfile = '\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activos\\EXPORT P2\\2017\HORARIOS EXP P2.xlsx'
+#excelfile = '\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activos\\EXPORT P2\\2017\HORARIOS EXP P2.xlsx'
+excelfile = 'HORARIOS EXP P2.xlsx'
 excelbackup = '\\\\WSMX02402FP\\Shared\\IMP-EXP\INTERNATIONAL TRADE\\RK & Activos\\EXPORT P2\\2017\HORARIOS EXP P2 - BACKUP.xlsx'
 
 
@@ -30,13 +31,8 @@ def InitEnv():
     outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace(
         "MAPI")
     ws = book.worksheets[5]
-    inbox = outlook.GetDefaultFolder(
-        6)  # "6" refers to the index of a folder - in this case,
-    # the inbox. You can change that number to reference
-    # # any other folder
-    messages = inbox.Items
-    cajas_folder = inbox.Folders.Item("Sistema de Cajas")
-    print(book.worksheets[5])
+    messages = outlook.GetDefaultFolder(6).Items  # "6" refers to the index of a folder "Inbox"
+    cajas_folder = outlook.GetDefaultFolder(6).Folders.Item("Sistema de Cajas")
     IterInbox(ws, messages, cajas_folder, book)
 
 
@@ -73,22 +69,11 @@ def IterInbox(ws, messages, cajas_folder, book):
     row = getRow(ws)
     rowAUx = row
     for message in messages:
-        print(message.SenderEmailAddress)
-        if message.Class == 43 :
-            if message.SenderEmailType == "EX" :
-                if subject in message.Subject and email in message.Sender.GetExchangeUser().PrimarySmtpAddress and not (
-                        subjectAd in message.Subject):
-                    print(message.Sender.GetExchangeUser().PrimarySmtpAddress)
-                    if getData(message, ws, row):
-                        row += 1
-                    #message.Move(cajas_folder)
-            else:
-                if subject in message.Subject and email in message.SenderEmailAddress and not (
-                        subjectAd in message.Subject):
-                    print(message.SenderEmailAddress)
-                    if getData(message, ws, row):
-                        row += 1
-                    #message.Move(cajas_folder)
+        if subject in message.Subject and email in message.SenderEmailAddress and not (
+                subjectAd in message.Subject):
+            if getData(message, ws, row):
+                row += 1
+            message.Move(cajas_folder)
     if rowAUx != row:
         SaveDoc(book)
     else:
@@ -203,8 +188,7 @@ def InitConf(EmailData):
     book = openpyxl.load_workbook(excelfile)
     outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
     ws = book.worksheets[5]
-    inbox = outlook.GetDefaultFolder(6)  
-    messages = inbox.Items
+    messages = outlook.GetDefaultFolder(6).Items
     print(book.worksheets[5])
     IterConf(ws, messages, book, EmailData)
 
@@ -214,26 +198,21 @@ def IterConf(ws, messages, book, EmailData):
     for message in messages:
         if message.Class == 43 :
             if message.SenderEmailType == "EX" :
-                if EmailData.getSubject() in message.Subject and EmailData.getEmail() in message.Sender.GetExchangeUser().PrimarySmtpAddress:
-                    print(message.Sender.GetExchangeUser().PrimarySmtpAddress)
-                    if EmailData.getBody() in str(message.body).lower():
-                        fecha = str(message.SentOn).split()[0].split('-')
-                        EmailData.setStart(fecha[1] + "/" + fecha[2] + "/" + fecha[0])
-                        EmailData.setCaja(str(message.Subject).split()[1])
-                        EmailData.setEnd(str(deltaDate(EmailData.getStart(), -4)))
-                        EmailData.setRow(getDateRow(row, ws, EmailData.getStart()))
-                        findBoxbyDate(ws, message, EmailData)
+                if EmailData.getBodyKey() in message.Subject and EmailData.getEmailKey() in message.Sender.GetExchangeUser().PrimarySmtpAddress:
+                    getEmailData(ws, messages, EmailData)
             else:
-                if EmailData.getSubject() in message.Subject and EmailData.getEmail() in message.SenderEmailAddress:
-                    print(message.SenderEmailAddress)
-                    if EmailData.getBody() in str(message.body).lower():
-                        fecha = str(message.SentOn).split()[0].split('-')
-                        EmailData.setStart(fecha[1] + "/" + fecha[2] + "/" + fecha[0])
-                        EmailData.setCaja(str(message.Subject).split()[1])
-                        EmailData.setEnd(str(deltaDate(EmailData.getStart(), -4)))
-                        EmailData.setRow(getDateRow(row, ws, EmailData.getStart()))
-                        findBoxbyDate(ws, message, EmailData)
+                if EmailData.getBodyKey() in message.Subject and EmailData.getEmailKey() in message.SenderEmailAddress:                
+                    getEmailData(ws, messages, EmailData)
     SaveDoc(excelfile)
+
+def getEmailData(EmailData):
+    if EmailData.getBodyKey() in str(message.body).lower():
+        fecha = str(message.SentOn).split()[0].split('-')
+        EmailData.setStart(fecha[1] + "/" + fecha[2] + "/" + fecha[0])
+        EmailData.setCaja(str(message.Subject).split()[1])
+        EmailData.setEnd(str(deltaDate(EmailData.getStart(), -4)))
+        EmailData.setRow(getDateRow(row, ws, EmailData.getStart()))
+        findBoxbyDate(ws, message, EmailData)
 
 def findBoxbyDate(ws, message, EmailData):
     row = EmailData.getRow()
@@ -249,11 +228,11 @@ def findBoxbyDate(ws, message, EmailData):
 
 
 def getDateRow(row, ws, formdate):
-    for x in range(row, 1, -1):
+    for x in range(1,row):
         if('-' in str(ws.cell(row=x, column=3).value)):
-            fecha = str(ws.cell(row=x, column=3).value).split()[0].split('-')
-            fecha = fecha[1] + "/" + fecha[2] + "/" + fecha[0]
-
+            fecha = str(ws.cell(row=x, column=3).value)
+            timeclass = datetime.datetime.strptime(fecha,"%Y-%m-%d %H:%M:%S")
+            fecha = timeclass.strftime("%#m/%#d/%Y")
         else:
             fecha = str(ws.cell(row=x, column=3).value)
         if fecha == formdate:
@@ -265,8 +244,10 @@ def deltaDate(strdate, days):
     return str(timeclass + timedelta(days=days))
 
 
-def test(box):
-    print(box.getEmail())
+def test():
+    Test = 'apsoda apsodpa sadsd sad asda sdasdasd XF012031923' 
+    if 'XF' in Test:
+        print('TRUE')
 
 def main():
     while True:
@@ -300,13 +281,12 @@ def main():
         elif ans == '5':
             print("Buscando confirmaciones Schneider..." + "\n")
             EmailData = EmailBox("schneider-electric.com","P2","adjunto")
-            print(EmailData.getEmail())
+            print(EmailData.getEmailKey())
             InitConf(EmailData)
 
         elif ans == '9':
             print("Adios")
             exit()
         elif ans == '6':
-            EmailData = EmailBox("schneider-electric.com","P2","adjunto")
-            test(EmailData)
+            test()
 main()

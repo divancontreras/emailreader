@@ -4,8 +4,8 @@ class EmailBox(object):
 
     Attributes:
         Caja: El numero de la caja.
-        Email: El key que se busca en el email.
-        Subject: El key que se busca en el asunto.
+        EmailKey: El key que se busca en el email.
+        SubjectKey: El key que se busca en el asunto.
         BodyKey: El key que se busca en el body.
         Start: Fecha donde se inicia busqueda.
         End: Fecha donde concluye busqueda
@@ -13,12 +13,12 @@ class EmailBox(object):
 
     """
 
-    def __init__(self, email, subject, bodykey):
+    def __init__(self, emailkey, subjectkey, bodykey):
         """Las caracteristicas basicas para encontrar una caja son requeridas para
         crear un objeto de la clase
         """
-        self.email = email
-        self.subject = subject
+        self.emailkey = emailkey
+        self.subjectkey = subjectkey
         self.bodykey = bodykey
 
     def setStart(self, startdate):
@@ -45,15 +45,15 @@ class EmailBox(object):
         """Este atributo sirve para limitar el día de busqueda."""        
         self.enddate = enddate
 
-    def getEmail(self):
+    def getEmailKey(self):
         """Regresa la key que se busca en el email."""        
-        return self.email
+        return self.emailkey
 
-    def getSubject(self):
+    def getSubjectKey(self):
         """Regresa la key que se busca en el asunto."""        
-        return self.subject
+        return self.subjectkey
 
-    def getBody(self):
+    def getBodyKey(self):
         """Regresa el la key que se busca en el body"""        
         return self.bodykey
             
