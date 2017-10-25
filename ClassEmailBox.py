@@ -13,24 +13,41 @@ class EmailBox(object):
 
     """
 
-    def __init__(self, emailkey, subjectkey, bodykey):
+    def __init__(self, emailkey, datecol, hourcol, iteration = False):
         """Las caracteristicas basicas para encontrar una caja son requeridas para
         crear un objeto de la clase
         """
         self.emailkey = emailkey
-        self.subjectkey = subjectkey
-        self.bodykey = bodykey
+        self.datecol = datecol
+        self.hourcol = hourcol
+        self.iteration = iteration
 
-    def setStart(self, startdate):
+    def getDateColumn(self):
+        """Este define cual es la caja"""        
+        return self.datecol
+
+    def getIteration(self):
+        """Este define cual es la caja"""        
+        return self.iteration
+
+    def getHourColumn(self):
+        """Este define cual es la caja"""        
+        return self.hourcol
+
+    def getFactura(self):
+        """Este define cual es la caja"""        
+        return self.caja
+
+    def setFecha(self, justdate):
         """Este atributo sirve para saber que día llegó la caja y de ahí comenzar a buscar"""
-        self.startdate = startdate
+        self.justdate = justdate
 
-    def setCaja(self, caja):
+    def setFactura(self, caja):
         """Este define cual es la caja"""        
         self.caja = caja
 
-    def getCaja(self):
-        """Regresa el numero de caja"""
+    def getFactura(self):
+        """Este define cual es la caja"""        
         return self.caja
 
     def setRow(self, row):
@@ -41,26 +58,10 @@ class EmailBox(object):
         """Regresa la Row donde se encontró la fecha."""
         return self.row
 
-    def setEnd(self, enddate):
-        """Este atributo sirve para limitar el día de busqueda."""        
-        self.enddate = enddate
-
     def getEmailKey(self):
         """Regresa la key que se busca en el email."""        
         return self.emailkey
 
-    def getSubjectKey(self):
-        """Regresa la key que se busca en el asunto."""        
-        return self.subjectkey
-
-    def getBodyKey(self):
-        """Regresa el la key que se busca en el body"""        
-        return self.bodykey
-            
-    def getStart(self):
+    def getFecha(self):
         """Regresa start date de donde se iterará para buscar la caja"""
-        return self.startdate
-
-    def getEnd(self):
-        """Regresa End Date  de donde se terminará de iterará para buscar la caja"""        
-        return self.enddate
+        return self.justdate

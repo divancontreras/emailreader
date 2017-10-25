@@ -1,0 +1,55 @@
+##################################################################
+##					     			##
+##	Archivo de Configuraciones Email-Reader 		##	
+## 	¡Favor de mantener la estructura del texto!		##
+##	Autor: Diego Contreras	diego.conville@gmail.com 	##
+##					     			##
+##################################################################
+## 						    		##
+## Opción 1 				     			##
+## No tiene opciones adicionales	     			##
+## - Email de quien se envía: "AdminCajasMty"			##
+## 	Ej. AdminCajasMty@empresa.com ->  AdminCajasMty		##
+## - Asunto en el email que se busca: "P2- Reporte de Caja"	##
+## - Algo que no se quiere en el asunto: "NACIONAL"		##
+## 						    		##
+## 						    		##
+##################################################################
+## 						    		##
+## Opción 2				     			##
+## - Tiempo de actualizado (segundos): "300"     		##
+## 						    		##
+##################################################################
+## 						    		##
+## Opción 3				     			##
+## - Nombre de quien se actualiza: "Daw Vidal" 			##
+## - Email de quien se actualiza: "dawvidal.com"		##
+## 	Ej. Nombre@empresa.com ->  empresa.com          	##
+## - Columna donde se encuentra la fecha: "20"  		##
+## - Columna donde se encuentra hora: "21"			##
+## 						    		##
+##################################################################
+## 						    		##
+## Opción 4				     			##
+## - Nombre de quien se actualiza: "Expeditors"			##
+## - Email de quien se actualiza: "expeditors.com"		##
+## 	Ej. Nombre@empresa.com ->  empresa.com         		##
+## - Columna donde se encuentra la fecha: "18"  		##
+## - Columna donde se encuentra hora: "19"			##
+## 						    		##
+##################################################################
+## 						    		##
+## Opción 5				     			##
+## - Nombre de quien se actualiza: "Nuestras"			##
+## - Email de quien se actualiza: "schneider-electric.com"	##
+## 	Ej. Nombre@empresa.com ->  empresa.com          	##
+## - Columna donde se encuentra la fecha: "16"  		##
+## - Columna donde se encuentra hora: "17"			##
+## 						    		##
+##################################################################
+## 						    		##
+## Opción 6				     			##
+## Actualizará todas las opciones anteriores (3,4,5)		##
+## No tiene opciones adicionales.  				##
+## 						    		##
+##################################################################
