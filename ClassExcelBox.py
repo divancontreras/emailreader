@@ -61,6 +61,12 @@ class BoxExcel(object):
     def setCaja(self, caja):
         self.caja = caja
 
+    def setBody(self, body):
+        self.body = body
+
+    def getBody(self):
+        return self.body 
+
     def setSello(self, sello):
         self.sello = sello
         
@@ -81,3 +87,9 @@ class BoxExcel(object):
 
     def setRow(self, row):
         self.row = row
+        
+    def getEmail(self):
+        return self.email
+
+    def setTipoCaja(self,tipocaja):
+        self.tipocaja = tipocaja

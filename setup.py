@@ -2,7 +2,7 @@ from cx_Freeze import setup, Executable
 
 base = None
 
-executables = [Executable("Def_Email.py", base=base)]
+executables = [Executable("Email Reader.py", base=base)]
 
 packages = ["win32com", "openpyxl", "datetime", "time", "copy"]
 options = {
@@ -14,9 +14,9 @@ options = {
 }
 
 setup(
-    name = "Email Parser",
+    name = "Email Reader",
     options = options,
     version = "1.0",
-    description = 'First exe realease of Email Parser.',
+    description = 'First exe realease of Email Parser, a python scripts that parses data on emails. Author: Diego Contreras.',
     executables = executables
 )
